@@ -1,2 +1,0 @@
-# bitcoindashboard
-Bitcoin Stats Dashboard
