@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTC Swing Trading Statistics</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0e27;
+      color: #e0e6ed;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    h1 { font-size: 28px; font-weight: 600; margin-bottom: 24px; color: #fff; }
+    h2 { font-size: 20px; font-weight: 600; margin: 32px 0 16px; color: #fff; }
+    
+    .demo-notice {
+      background: rgba(63, 81, 181, 0.1);
+      border: 1px solid rgba(63, 81, 181, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: #90caf9;
+    }
+    
+    .today-context {
+      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .today-header {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #b8c5d6;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    .stat-sub {
+      font-size: 13px;
+      color: #90a4ae;
+      margin-top: 4px;
+    }
+    
+    .positive { color: #4caf50; }
+    .negative { color: #f44336; }
+    
+    .controls {
+      background: #151b35;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .control-row {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .control-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    label {
+      display: block;
+      font-size: 13px;
+      color: #b8c5d6;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0a0e27;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: #e0e6ed;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    select:hover { border-color: rgba(255,255,255,0.3); }
+    select:focus { outline: none; border-color: #3f51b5; }
+    
+    .card {
+      background: #151b35;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .card p {
+      font-size: 14px;
+      color: #90a4ae;
+      margin-bottom: 16px;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 350px;
+      margin-top: 20px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    th {
+      font-size: 12px;
+      color: #b8c5d6;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    td { font-size: 14px; }
+    
+    tr:hover { background: rgba(255,255,255,0.03); }
+    
+    .metric-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .metric-box {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 BTC Swing Trading Statistics</h1>
+    
+    <div id="loading" style="text-align: center; padding: 60px 20px; font-size: 18px; color: #b8c5d6;">
+      Loading BTC data...
+      <div style="font-size: 14px; color: #90a4ae; margin-top: 12px;" id="loading-status">Fetching historical prices from CoinCap API...</div>
+    </div>
+    
+    <div id="error-msg" style="display: none; background: rgba(244, 67, 54, 0.1); border: 1px solid rgba(244, 67, 54, 0.3); border-radius: 8px; padding: 16px; margin: 20px 0; font-size: 14px; color: #ef5350;"></div>
+    
+    <div id="app" style="display: none;">
+    
+    <div class="today-context">
+      <div class="today-header" id="today-date"></div>
+      
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Today (Day of Week)</div>
+          <div class="stat-value" id="dow-name"></div>
+          <div class="stat-sub" id="dow-stats"></div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Avg Daily Move</div>
+          <div class="stat-value" id="avg-daily"></div>
+          <div class="stat-sub" id="recent-daily"></div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Current Month Progress</div>
+          <div class="stat-value" id="month-progress"></div>
+          <div class="stat-sub" id="month-days"></div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Volatility vs All-Time</div>
+          <div class="stat-value" id="vol-ratio"></div>
+          <div class="stat-sub" id="current-streak"></div>
+        </div>
+      </div>
+      
+      <div class="metric-row">
+        <div class="metric-box">
+          <div class="stat-label">Gap to Monthly Average</div>
+          <div class="stat-value" id="gap-simple"></div>
+          <div class="stat-sub">Simple average approach</div>
+        </div>
+        
+        <div class="metric-box">
+          <div class="stat-label">Volatility-Adjusted Projection</div>
+          <div class="stat-value" id="gap-adjusted"></div>
+          <div class="stat-sub">Based on recent regime</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <div class="control-row">
+        <div class="control-group">
+          <label>Reference Period</label>
+          <select id="reference-period">
+            <option value="7">1 Week</option>
+            <option value="30">1 Month</option>
+            <option value="90">3 Months</option>
+            <option value="180" selected>6 Months</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label>Recent Volatility Window</label>
+          <select id="vol-window">
+            <option value="3">3 Days</option>
+            <option value="7">1 Week</option>
+            <option value="14" selected>2 Weeks</option>
+            <option value="21">3 Weeks</option>
+            <option value="30">1 Month</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Day of Week Performance</h2>
+      <table id="dow-table">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Avg Change</th>
+            <th>Win Rate</th>
+            <th>Avg Up Days</th>
+            <th>Avg Down Days</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    
+    <div class="card">
+      <h2>Monthly Seasonality</h2>
+      <p>Historical performance by calendar month (based on reference period)</p>
+      <table id="seasonality-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Avg Change</th>
+            <th>Win Rate</th>
+            <th>Best Month</th>
+            <th>Worst Month</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    
+    <div class="card">
+      <h2>Price Movement Analysis</h2>
+      <div class="chart-container">
+        <canvas id="price-chart"></canvas>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Drawdown Analysis</h2>
+      <p>Maximum declines from peak within reference period</p>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Max 7-Day Drawdown</div>
+          <div class="stat-value negative" id="max-weekly-dd"></div>
+          <div class="stat-sub">Worst 7-day decline</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Max 30-Day Drawdown</div>
+          <div class="stat-value negative" id="max-monthly-dd"></div>
+          <div class="stat-sub">Worst 30-day decline</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Avg Weekly Drawdown</div>
+          <div class="stat-value negative" id="avg-weekly-dd"></div>
+          <div class="stat-sub">Typical 7-day worst case</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Current Drawdown</div>
+          <div class="stat-value" id="current-dd"></div>
+          <div class="stat-sub" id="current-dd-sub"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Run-up Analysis</h2>
+      <p>Maximum rallies from lows within reference period</p>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Max 7-Day Run-up</div>
+          <div class="stat-value positive" id="max-weekly-ru"></div>
+          <div class="stat-sub">Biggest 7-day rally</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Max 30-Day Run-up</div>
+          <div class="stat-value positive" id="max-monthly-ru"></div>
+          <div class="stat-sub">Biggest 30-day rally</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Avg Weekly Run-up</div>
+          <div class="stat-value positive" id="avg-weekly-ru"></div>
+          <div class="stat-sub">Typical 7-day best case</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Current Run-up</div>
+          <div class="stat-value" id="current-ru"></div>
+          <div class="stat-sub" id="current-ru-sub"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Volatility & Streaks</h2>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Reference Period Volatility</div>
+          <div class="stat-value" id="ref-volatility"></div>
+          <div class="stat-sub">Avg daily move</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Recent Volatility</div>
+          <div class="stat-value" id="recent-volatility"></div>
+          <div class="stat-sub" id="vol-comparison"></div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Longest Green Streak</div>
+          <div class="stat-value" id="green-streak"></div>
+          <div class="stat-sub">Consecutive up days</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Longest Red Streak</div>
+          <div class="stat-value" id="red-streak"></div>
+          <div class="stat-sub">Consecutive down days</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Weekly Performance</h2>
+      <div class="chart-container">
+        <canvas id="weekly-chart"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script>
+    let allData = [];
+    let priceChart = null;
+    let weeklyChart = null;
+    
+    async function fetchBTCData() {
+      try {
+        document.getElementById('loading-status').textContent = 'Connecting to CoinGecko API...';
+        
+        const days = 180;
+        
+        // CoinGecko API endpoint for historical data
+        const url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}&interval=daily`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`API returned status ${response.status}`);
+        }
+        
+        document.getElementById('loading-status').textContent = 'Processing data...';
+        
+        const result = await response.json();
+        
+        if (!result.prices || result.prices.length === 0) {
+          throw new Error('No data returned from API');
+        }
+        
+        // CoinGecko returns [timestamp, price] pairs
+        const dailyData = result.prices.map((item, index) => {
+          const timestamp = item[0];
+          const price = item[1];
+          const date = new Date(timestamp);
+          
+          return {
+            date: date.toISOString().split('T')[0],
+            timestamp: timestamp,
+            close: price,
+            open: price,
+            high: price,
+            low: price,
+            change: 0
+          };
+        });
+        
+        // Calculate daily changes
+        for (let i = 1; i < dailyData.length; i++) {
+          const prev = dailyData[i - 1];
+          const curr = dailyData[i];
+          curr.change = ((curr.close - prev.close) / prev.close) * 100;
+        }
+        
+        dailyData[0].change = 0;
+        
+        return dailyData;
+        
+      } catch (error) {
+        console.error('Error fetching BTC data:', error);
+        document.getElementById('loading').style.display = 'none';
+        const errorMsg = document.getElementById('error-msg');
+        errorMsg.style.display = 'block';
+        errorMsg.innerHTML = `
+          <strong>Failed to load data:</strong> ${error.message}<br><br>
+          Please try refreshing the page. If the problem persists, the API may be temporarily unavailable.
+        `;
+        throw error;
+      }
+    }
+    
+    function calculateStats(data, referenceDays, volWindow) {
+      const now = new Date();
+      const referenceData = referenceDays === 'all' ? data : data.slice(-referenceDays);
+      const recentVolData = data.slice(-volWindow);
+      
+      const dayOfWeekStats = {};
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      
+      days.forEach(day => {
+        dayOfWeekStats[day] = { changes: [], upDays: [], downDays: [] };
+      });
+      
+      referenceData.forEach(d => {
+        const date = new Date(d.timestamp);
+        const dayName = days[date.getDay()];
+        dayOfWeekStats[dayName].changes.push(d.change);
+        if (d.change > 0) dayOfWeekStats[dayName].upDays.push(d.change);
+        if (d.change < 0) dayOfWeekStats[dayName].downDays.push(d.change);
+      });
+      
+      // Monthly seasonality
+      const monthlySeasonality = {};
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      
+      months.forEach(month => {
+        monthlySeasonality[month] = { changes: [], best: -Infinity, worst: Infinity };
+      });
+      
+      // Group data by month
+      const monthlyGroups = {};
+      referenceData.forEach(d => {
+        const date = new Date(d.timestamp);
+        const monthName = months[date.getMonth()];
+        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+        
+        if (!monthlyGroups[monthKey]) {
+          monthlyGroups[monthKey] = {
+            monthName: monthName,
+            data: []
+          };
+        }
+        monthlyGroups[monthKey].data.push(d);
+      });
+      
+      // Calculate monthly changes
+      Object.values(monthlyGroups).forEach(group => {
+        if (group.data.length > 0) {
+          const monthChange = ((group.data[group.data.length - 1].close - group.data[0].open) / group.data[0].open) * 100;
+          monthlySeasonality[group.monthName].changes.push(monthChange);
+          monthlySeasonality[group.monthName].best = Math.max(monthlySeasonality[group.monthName].best, monthChange);
+          monthlySeasonality[group.monthName].worst = Math.min(monthlySeasonality[group.monthName].worst, monthChange);
+        }
+      });
+      
+      // Drawdown calculations
+      const drawdowns = {
+        weekly: [],
+        monthly: [],
+        current: 0
+      };
+      
+      // Run-up calculations
+      const runups = {
+        weekly: [],
+        monthly: [],
+        current: 0
+      };
+      
+      // Calculate rolling 7-day drawdowns
+      for (let i = 7; i < referenceData.length; i++) {
+        const window = referenceData.slice(i - 7, i);
+        let peak = -Infinity;
+        let maxDD = 0;
+        
+        window.forEach(d => {
+          peak = Math.max(peak, d.close);
+          const dd = ((d.close - peak) / peak) * 100;
+          maxDD = Math.min(maxDD, dd);
+        });
+        
+        drawdowns.weekly.push(maxDD);
+      }
+      
+      // Calculate rolling 7-day run-ups
+      for (let i = 7; i < referenceData.length; i++) {
+        const window = referenceData.slice(i - 7, i);
+        let trough = Infinity;
+        let maxRU = 0;
+        
+        window.forEach(d => {
+          trough = Math.min(trough, d.close);
+          const ru = ((d.close - trough) / trough) * 100;
+          maxRU = Math.max(maxRU, ru);
+        });
+        
+        runups.weekly.push(maxRU);
+      }
+      
+      // Calculate rolling 30-day drawdowns
+      for (let i = 30; i < referenceData.length; i++) {
+        const window = referenceData.slice(i - 30, i);
+        let peak = -Infinity;
+        let maxDD = 0;
+        
+        window.forEach(d => {
+          peak = Math.max(peak, d.close);
+          const dd = ((d.close - peak) / peak) * 100;
+          maxDD = Math.min(maxDD, dd);
+        });
+        
+        drawdowns.monthly.push(maxDD);
+      }
+      
+      // Calculate rolling 30-day run-ups
+      for (let i = 30; i < referenceData.length; i++) {
+        const window = referenceData.slice(i - 30, i);
+        let trough = Infinity;
+        let maxRU = 0;
+        
+        window.forEach(d => {
+          trough = Math.min(trough, d.close);
+          const ru = ((d.close - trough) / trough) * 100;
+          maxRU = Math.max(maxRU, ru);
+        });
+        
+        runups.monthly.push(maxRU);
+      }
+      
+      // Current drawdown (from recent peak)
+      let recentPeak = -Infinity;
+      for (let i = Math.max(0, data.length - 30); i < data.length; i++) {
+        recentPeak = Math.max(recentPeak, data[i].close);
+      }
+      drawdowns.current = ((data[data.length - 1].close - recentPeak) / recentPeak) * 100;
+      
+      // Current run-up (from recent trough)
+      let recentTrough = Infinity;
+      for (let i = Math.max(0, data.length - 30); i < data.length; i++) {
+        recentTrough = Math.min(recentTrough, data[i].close);
+      }
+      runups.current = ((data[data.length - 1].close - recentTrough) / recentTrough) * 100;
+      
+      const avgDaily = referenceData.reduce((sum, d) => sum + Math.abs(d.change), 0) / referenceData.length;
+      const recentAvgDaily = recentVolData.reduce((sum, d) => sum + Math.abs(d.change), 0) / recentVolData.length;
+      
+      const weeklyChanges = [];
+      for (let i = 0; i < referenceData.length - 7; i += 7) {
+        const weekData = referenceData.slice(i, i + 7);
+        if (weekData.length === 7) {
+          const weekChange = ((weekData[6].close - weekData[0].close) / weekData[0].close) * 100;
+          weeklyChanges.push(weekChange);
+        }
+      }
+      const avgWeekly = weeklyChanges.length > 0 
+        ? weeklyChanges.reduce((sum, c) => sum + c, 0) / weeklyChanges.length 
+        : 0;
+      
+      const monthlyChanges = [];
+      for (let i = 0; i < referenceData.length - 30; i += 30) {
+        const monthData = referenceData.slice(i, i + 30);
+        if (monthData.length === 30) {
+          const monthChange = ((monthData[29].close - monthData[0].close) / monthData[0].close) * 100;
+          monthlyChanges.push(monthChange);
+        }
+      }
+      const avgMonthly = monthlyChanges.length > 0
+        ? monthlyChanges.reduce((sum, c) => sum + c, 0) / monthlyChanges.length
+        : 0;
+      
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const monthStart = new Date(currentYear, currentMonth, 1).getTime();
+      const currentMonthData = data.filter(d => d.timestamp >= monthStart);
+      
+      const currentMonthChange = currentMonthData.length > 0
+        ? ((currentMonthData[currentMonthData.length - 1].close - currentMonthData[0].close) / currentMonthData[0].close) * 100
+        : 0;
+      
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const daysElapsed = now.getDate();
+      const daysRemaining = daysInMonth - daysElapsed;
+      
+      const simpleGap = avgMonthly - currentMonthChange;
+      
+      const recentVolatility = recentAvgDaily;
+      const projectedRemaining = recentVolatility * daysRemaining * 0.7;
+      const adjustedRange = {
+        low: projectedRemaining * 0.5,
+        high: projectedRemaining * 1.5
+      };
+      
+      let currentStreak = 0;
+      let streakType = null;
+      for (let i = data.length - 1; i >= 0; i--) {
+        const change = data[i].change;
+        if (streakType === null) {
+          streakType = change > 0 ? 'green' : 'red';
+          currentStreak = 1;
+        } else if ((streakType === 'green' && change > 0) || (streakType === 'red' && change < 0)) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+      
+      let maxGreen = 0, maxRed = 0;
+      let tempGreen = 0, tempRed = 0;
+      
+      referenceData.forEach(d => {
+        if (d.change > 0) {
+          tempGreen++;
+          tempRed = 0;
+          maxGreen = Math.max(maxGreen, tempGreen);
+        } else if (d.change < 0) {
+          tempRed++;
+          tempGreen = 0;
+          maxRed = Math.max(maxRed, tempRed);
+        }
+      });
+      
+      return {
+        dayOfWeekStats,
+        monthlySeasonality,
+        drawdowns,
+        runups,
+        avgDaily,
+        recentAvgDaily,
+        avgWeekly,
+        avgMonthly,
+        currentMonthChange,
+        daysElapsed,
+        daysRemaining,
+        simpleGap,
+        adjustedRange,
+        currentStreak,
+        streakType,
+        maxGreen,
+        maxRed,
+        volRatio: recentAvgDaily / avgDaily
+      };
+    }
+    
+    function updateUI(stats) {
+      const now = new Date();
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const todayName = days[now.getDay()];
+      
+      document.getElementById('today-date').textContent = 
+        `📅 Today: ${todayName}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+      
+      const dowStats = stats.dayOfWeekStats[todayName];
+      const dowAvg = dowStats.changes.length > 0 
+        ? dowStats.changes.reduce((sum, c) => sum + c, 0) / dowStats.changes.length 
+        : 0;
+      const dowWinRate = dowStats.changes.length > 0 
+        ? (dowStats.upDays.length / dowStats.changes.length) * 100 
+        : 0;
+      
+      document.getElementById('dow-name').textContent = todayName;
+      document.getElementById('dow-stats').innerHTML = 
+        `<span class="${dowAvg > 0 ? 'positive' : 'negative'}">${dowAvg > 0 ? '+' : ''}${dowAvg.toFixed(2)}%</span> avg · ${dowWinRate.toFixed(0)}% bullish`;
+      
+      document.getElementById('avg-daily').textContent = `±${stats.avgDaily.toFixed(2)}%`;
+      document.getElementById('recent-daily').textContent = 
+        `Recent: ±${stats.recentAvgDaily.toFixed(2)}% (${stats.volRatio > 1 ? 'running hot' : 'running cool'})`;
+      
+      document.getElementById('month-progress').innerHTML = 
+        `<span class="${stats.currentMonthChange > 0 ? 'positive' : 'negative'}">${stats.currentMonthChange > 0 ? '+' : ''}${stats.currentMonthChange.toFixed(2)}%</span>`;
+      document.getElementById('month-days').textContent = 
+        `${stats.daysElapsed} days in · ${stats.daysRemaining} days left`;
+      
+      document.getElementById('vol-ratio').textContent = `${stats.volRatio.toFixed(2)}x`;
+      document.getElementById('current-streak').innerHTML = 
+        `Current: <span class="${stats.streakType === 'green' ? 'positive' : 'negative'}">${stats.currentStreak} ${stats.streakType} day${stats.currentStreak > 1 ? 's' : ''}</span>`;
+      
+      document.getElementById('gap-simple').innerHTML = 
+        `<span class="${stats.simpleGap > 0 ? 'positive' : 'negative'}">${stats.simpleGap > 0 ? '+' : ''}${stats.simpleGap.toFixed(2)}%</span> to hit ${stats.avgMonthly.toFixed(1)}% avg`;
+      
+      document.getElementById('gap-adjusted').innerHTML = 
+        `<span class="${stats.adjustedRange.low > 0 ? 'positive' : 'negative'}">${stats.adjustedRange.low > 0 ? '+' : ''}${stats.adjustedRange.low.toFixed(1)}% to ${stats.adjustedRange.high > 0 ? '+' : ''}${stats.adjustedRange.high.toFixed(1)}%</span>`;
+      
+      document.getElementById('ref-volatility').textContent = `±${stats.avgDaily.toFixed(2)}%`;
+      document.getElementById('recent-volatility').textContent = `±${stats.recentAvgDaily.toFixed(2)}%`;
+      document.getElementById('vol-comparison').innerHTML = 
+        `<span class="${stats.volRatio > 1 ? 'positive' : 'negative'}">${((stats.volRatio - 1) * 100).toFixed(0)}% ${stats.volRatio > 1 ? 'higher' : 'lower'}</span> than reference`;
+      
+      document.getElementById('green-streak').textContent = `${stats.maxGreen} days`;
+      document.getElementById('red-streak').textContent = `${stats.maxRed} days`;
+      
+      // Drawdown stats
+      const maxWeeklyDD = stats.drawdowns.weekly.length > 0 ? Math.min(...stats.drawdowns.weekly) : 0;
+      const maxMonthlyDD = stats.drawdowns.monthly.length > 0 ? Math.min(...stats.drawdowns.monthly) : 0;
+      const avgWeeklyDD = stats.drawdowns.weekly.length > 0 
+        ? stats.drawdowns.weekly.reduce((sum, d) => sum + d, 0) / stats.drawdowns.weekly.length 
+        : 0;
+      
+      document.getElementById('max-weekly-dd').textContent = `${maxWeeklyDD.toFixed(2)}%`;
+      document.getElementById('max-monthly-dd').textContent = `${maxMonthlyDD.toFixed(2)}%`;
+      document.getElementById('avg-weekly-dd').textContent = `${avgWeeklyDD.toFixed(2)}%`;
+      document.getElementById('current-dd').textContent = `${stats.drawdowns.current.toFixed(2)}%`;
+      document.getElementById('current-dd').className = stats.drawdowns.current < 0 ? 'stat-value negative' : 'stat-value positive';
+      document.getElementById('current-dd-sub').textContent = 
+        stats.drawdowns.current < 0 ? 'From recent peak' : 'No drawdown';
+      
+      // Run-up stats
+      const maxWeeklyRU = stats.runups.weekly.length > 0 ? Math.max(...stats.runups.weekly) : 0;
+      const maxMonthlyRU = stats.runups.monthly.length > 0 ? Math.max(...stats.runups.monthly) : 0;
+      const avgWeeklyRU = stats.runups.weekly.length > 0 
+        ? stats.runups.weekly.reduce((sum, r) => sum + r, 0) / stats.runups.weekly.length 
+        : 0;
+      
+      document.getElementById('max-weekly-ru').textContent = `+${maxWeeklyRU.toFixed(2)}%`;
+      document.getElementById('max-monthly-ru').textContent = `+${maxMonthlyRU.toFixed(2)}%`;
+      document.getElementById('avg-weekly-ru').textContent = `+${avgWeeklyRU.toFixed(2)}%`;
+      document.getElementById('current-ru').textContent = `+${stats.runups.current.toFixed(2)}%`;
+      document.getElementById('current-ru').className = 'stat-value positive';
+      
+      const ruProgress = (stats.runups.current / avgWeeklyRU) * 100;
+      if (ruProgress > 100) {
+        document.getElementById('current-ru-sub').textContent = `${(ruProgress - 100).toFixed(0)}% above avg run-up`;
+      } else {
+        document.getElementById('current-ru-sub').textContent = `${ruProgress.toFixed(0)}% of avg run-up`;
+      }
+      
+      // Day of week table
+      const dowTbody = document.querySelector('#dow-table tbody');
+      dowTbody.innerHTML = '';
+      
+      days.forEach(day => {
+        const dayStats = stats.dayOfWeekStats[day];
+        if (dayStats.changes.length === 0) return;
+        
+        const avg = dayStats.changes.reduce((sum, c) => sum + c, 0) / dayStats.changes.length;
+        const winRate = (dayStats.upDays.length / dayStats.changes.length) * 100;
+        const avgUp = dayStats.upDays.length > 0 
+          ? dayStats.upDays.reduce((sum, c) => sum + c, 0) / dayStats.upDays.length 
+          : 0;
+        const avgDown = dayStats.downDays.length > 0 
+          ? dayStats.downDays.reduce((sum, c) => sum + c, 0) / dayStats.downDays.length 
+          : 0;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="font-weight: 500;">${day}</td>
+          <td class="${avg > 0 ? 'positive' : 'negative'}">${avg > 0 ? '+' : ''}${avg.toFixed(2)}%</td>
+          <td>${winRate.toFixed(0)}%</td>
+          <td class="positive">+${avgUp.toFixed(2)}%</td>
+          <td class="negative">${avgDown.toFixed(2)}%</td>
+        `;
+        dowTbody.appendChild(row);
+      });
+      
+      // Monthly seasonality table
+      const seasonTbody = document.querySelector('#seasonality-table tbody');
+      seasonTbody.innerHTML = '';
+      
+      months.forEach(month => {
+        const monthStats = stats.monthlySeasonality[month];
+        if (monthStats.changes.length === 0) return;
+        
+        const avg = monthStats.changes.reduce((sum, c) => sum + c, 0) / monthStats.changes.length;
+        const upMonths = monthStats.changes.filter(c => c > 0).length;
+        const winRate = (upMonths / monthStats.changes.length) * 100;
+        const best = monthStats.best === -Infinity ? 0 : monthStats.best;
+        const worst = monthStats.worst === Infinity ? 0 : monthStats.worst;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="font-weight: 500;">${month}</td>
+          <td class="${avg > 0 ? 'positive' : 'negative'}">${avg > 0 ? '+' : ''}${avg.toFixed(2)}%</td>
+          <td>${winRate.toFixed(0)}%</td>
+          <td class="positive">+${best.toFixed(2)}%</td>
+          <td class="negative">${worst.toFixed(2)}%</td>
+        `;
+        seasonTbody.appendChild(row);
+      });
+    }
+    
+    function updateCharts(data, referenceDays) {
+      const referenceData = referenceDays === 'all' ? data : data.slice(-referenceDays);
+      
+      if (priceChart) priceChart.destroy();
+      
+      const ctx = document.getElementById('price-chart').getContext('2d');
+      priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: referenceData.map(d => d.date),
+          datasets: [{
+            label: 'BTC Price (USD)',
+            data: referenceData.map(d => d.close),
+            borderColor: '#3f51b5',
+            backgroundColor: 'rgba(63, 81, 181, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              padding: 12,
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              callbacks: {
+                label: function(context) {
+                  return `$${context.parsed.y.toLocaleString()}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { 
+                color: '#90a4ae',
+                maxTicksLimit: 8
+              }
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { 
+                color: '#90a4ae',
+                callback: function(value) {
+                  return '$' + value.toLocaleString();
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      if (weeklyChart) weeklyChart.destroy();
+      
+      const weeklyData = [];
+      for (let i = 0; i < referenceData.length - 7; i += 7) {
+        const weekData = referenceData.slice(i, i + 7);
+        if (weekData.length === 7) {
+          const weekChange = ((weekData[6].close - weekData[0].close) / weekData[0].close) * 100;
+          weeklyData.push({
+            week: `Week ${Math.floor(i / 7) + 1}`,
+            change: weekChange
+          });
+        }
+      }
+      
+      const ctx2 = document.getElementById('weekly-chart').getContext('2d');
+      weeklyChart = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: weeklyData.map(w => w.week),
+          datasets: [{
+            label: 'Weekly Change %',
+            data: weeklyData.map(w => w.change),
+            backgroundColor: weeklyData.map(w => w.change > 0 ? '#4caf50' : '#f44336'),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              padding: 12,
+              callbacks: {
+                label: function(context) {
+                  return `${context.parsed.y > 0 ? '+' : ''}${context.parsed.y.toFixed(2)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#90a4ae' }
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { 
+                color: '#90a4ae',
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    async function init() {
+      try {
+        allData = await fetchBTCData();
+        
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        
+        updateDashboard();
+        
+        document.getElementById('reference-period').addEventListener('change', updateDashboard);
+        document.getElementById('vol-window').addEventListener('change', updateDashboard);
+      } catch (error) {
+        console.error('Failed to initialize:', error);
+      }
+    }
+    
+    function updateDashboard() {
+      const referencePeriod = document.getElementById('reference-period').value;
+      const volWindow = parseInt(document.getElementById('vol-window').value);
+      
+      const referenceDays = referencePeriod === 'all' ? 'all' : parseInt(referencePeriod);
+      
+      const stats = calculateStats(allData, referenceDays, volWindow);
+      updateUI(stats);
+      updateCharts(allData, referenceDays);
+    }
+    
+    init();
+  </script>
+</body>
+</html>
