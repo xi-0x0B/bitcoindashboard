@@ -413,7 +413,7 @@
     
     // Get 5 years of daily data
     const endTime = Date.now();
-    const startTime = endTime - (5 * 365 * 24 * 60 * 60 * 1000); // 5 years ago
+    const startTime = endTime - (10 * 365 * 24 * 60 * 60 * 1000); // 10 years ago
     
     // Binance API endpoint for daily klines (candlestick data)
     const url = `https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&startTime=${startTime}&endTime=${endTime}&limit=2000`;
