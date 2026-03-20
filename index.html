@@ -658,9 +658,7 @@
       const daysElapsed = now.getDate();
       const daysRemaining = daysInMonth - daysElapsed;
       
-
-
-      const simpleGap = currentMonthHistoricalAvg - currentMonthChange;
+      const simpleGap = avgMonthly - currentMonthChange;
       
       const recentVolatility = recentAvgDaily;
       const projectedRemaining = recentVolatility * daysRemaining * 0.7;
