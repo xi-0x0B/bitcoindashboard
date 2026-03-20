@@ -183,7 +183,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>🚀 BTC Swing Trading Statistics</h1>
+    <h1> Bitcoin Dashboard</h1>
     
     <div id="loading" style="text-align: center; padding: 60px 20px; font-size: 18px; color: #b8c5d6;">
       Loading BTC data...
@@ -653,7 +653,14 @@
       const daysElapsed = now.getDate();
       const daysRemaining = daysInMonth - daysElapsed;
       
-      const simpleGap = avgMonthly - currentMonthChange;
+      // Get historical average for current calendar month
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const currentMonthName = months[currentMonth];
+      const currentMonthHistoricalAvg = monthlySeasonality[currentMonthName].changes.length > 0
+      ? monthlySeasonality[currentMonthName].changes.reduce((sum, c) => sum + c, 0) / monthlySeasonality[currentMonthName].changes.length
+      : avgMonthly;
+
+      const simpleGap = currentMonthHistoricalAvg - currentMonthChange;
       
       const recentVolatility = recentAvgDaily;
       const projectedRemaining = recentVolatility * daysRemaining * 0.7;
@@ -701,6 +708,8 @@
         avgWeekly,
         avgMonthly,
         currentMonthChange,
+        currentMonthHistoricalAvg,
+        currentMonthName,
         daysElapsed,
         daysRemaining,
         simpleGap,
@@ -748,7 +757,7 @@
         `Current: <span class="${stats.streakType === 'green' ? 'positive' : 'negative'}">${stats.currentStreak} ${stats.streakType} day${stats.currentStreak > 1 ? 's' : ''}</span>`;
       
       document.getElementById('gap-simple').innerHTML = 
-        `<span class="${stats.simpleGap > 0 ? 'positive' : 'negative'}">${stats.simpleGap > 0 ? '+' : ''}${stats.simpleGap.toFixed(2)}%</span> to hit ${stats.avgMonthly.toFixed(1)}% avg`;
+        `<span class="${stats.simpleGap > 0 ? 'positive' : 'negative'}">${stats.simpleGap > 0 ? '+' : ''}${stats.simpleGap.toFixed(2)}%</span> to hit ${stats.currentMonthName} avg (${stats.currentMonthHistoricalAvg.toFixed(1)}%)`;
       
       document.getElementById('gap-adjusted').innerHTML = 
         `<span class="${stats.adjustedRange.low > 0 ? 'positive' : 'negative'}">${stats.adjustedRange.low > 0 ? '+' : ''}${stats.adjustedRange.low.toFixed(1)}% to ${stats.adjustedRange.high > 0 ? '+' : ''}${stats.adjustedRange.high.toFixed(1)}%</span>`;
