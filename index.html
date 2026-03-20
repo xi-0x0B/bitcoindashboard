@@ -411,7 +411,7 @@
       try {
         document.getElementById('loading-status').textContent = 'Connecting to CoinGecko API...';
         
-        const days = 'max';
+        const days = 365;
         
         // CoinGecko API endpoint for historical data
         const url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}&interval=daily`;
