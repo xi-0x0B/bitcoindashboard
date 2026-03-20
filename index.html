@@ -760,8 +760,8 @@
       document.getElementById('current-streak').innerHTML = 
         `Current: <span class="${stats.streakType === 'green' ? 'positive' : 'negative'}">${stats.currentStreak} ${stats.streakType} day${stats.currentStreak > 1 ? 's' : ''}</span>`;
       
-      document.getElementById('gap-simple').innerHTML = 
-        `<span class="${stats.simpleGap > 0 ? 'positive' : 'negative'}">${stats.simpleGap > 0 ? '+' : ''}${stats.simpleGap.toFixed(2)}%</span> to hit ${stats.avgMonthly.toFixed(1)}% avg`;
+     document.getElementById('gap-simple').innerHTML = 
+        `<span class="${stats.simpleGap > 0 ? 'positive' : 'negative'}">${stats.simpleGap > 0 ? '+' : ''}${stats.simpleGap.toFixed(2)}%</span> to hit ${stats.currentMonthName} avg (${stats.currentMonthHistoricalAvg.toFixed(1)}%)`;
       
       document.getElementById('gap-adjusted').innerHTML = 
         `<span class="${stats.adjustedRange.low > 0 ? 'positive' : 'negative'}">${stats.adjustedRange.low > 0 ? '+' : ''}${stats.adjustedRange.low.toFixed(1)}% to ${stats.adjustedRange.high > 0 ? '+' : ''}${stats.adjustedRange.high.toFixed(1)}%</span>`;
