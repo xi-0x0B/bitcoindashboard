@@ -476,7 +476,7 @@
   }
 }
     
-    function calculateStats(data, referenceDays, volWindow) {
+    const currentMonthData = (fullData || data).filter(d => d.timestamp >= monthStart);
       const now = new Date();
       const referenceData = referenceDays === 'all' ? data : data.slice(-referenceDays);
       const recentVolData = data.slice(-volWindow);
