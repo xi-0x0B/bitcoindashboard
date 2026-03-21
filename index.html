@@ -648,7 +648,9 @@
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
       const monthStart = new Date(currentYear, currentMonth, 1).getTime();
+      console.log('DEBUG - data length:', data.length, 'currentMonth:', currentMonth);
       const currentMonthData = data.filter(d => d.timestamp >= monthStart);
+      console.log('DEBUG - currentMonthData length:', currentMonthData.length, 'monthStart:', monthStart);
       
       const currentMonthChange = currentMonthData.length > 0
         ? ((currentMonthData[currentMonthData.length - 1].close - currentMonthData[0].close) / currentMonthData[0].close) * 100
