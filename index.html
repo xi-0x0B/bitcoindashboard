@@ -476,7 +476,7 @@
   }
 }
     
-    const currentMonthData = (fullData || data).filter(d => d.timestamp >= monthStart);
+    function calculateStats(data, referenceDays, volWindow) {
       const now = new Date();
       const referenceData = referenceDays === 'all' ? data : data.slice(-referenceDays);
       const recentVolData = data.slice(-volWindow);
@@ -649,7 +649,7 @@
       const currentYear = now.getFullYear();
       const monthStart = new Date(currentYear, currentMonth, 1).getTime();
       console.log('DEBUG - data length:', data.length, 'currentMonth:', currentMonth);
-      const currentMonthData = (fullData || data).filter(d => d.timestamp >= monthStart);
+      const currentMonthData = data.filter(d => d.timestamp >= monthStart);
       console.log('DEBUG - currentMonthData length:', currentMonthData.length, 'monthStart:', monthStart);
       
       const currentMonthChange = currentMonthData.length > 0
@@ -1005,7 +1005,7 @@
       
       const referenceDays = referencePeriod === 'all' ? 'all' : parseInt(referencePeriod);
       
-      const stats = calculateStats(allData, referenceDays, volWindow. allData);
+      const stats = calculateStats(allData, referenceDays, volWindow);
       updateUI(stats);
       updateCharts(allData, referenceDays);
     }
