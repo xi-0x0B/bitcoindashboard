@@ -650,6 +650,7 @@
       const monthStart = new Date(currentYear, currentMonth, 1).getTime();
       const currentMonthData = (fullData || data).filter(d => d.timestamp >= monthStart);
       
+console.log('March data:', currentMonthData.length, 'First:', currentMonthData[0]?.date, 'Last:', currentMonthData[currentMonthData.length-1]?.date, 'Change:', ((currentMonthData[currentMonthData.length - 1]?.close - currentMonthData[0]?.open) / currentMonthData[0]?.open * 100).toFixed(2) + '%');
       const currentMonthChange = currentMonthData.length > 0
         ? ((currentMonthData[currentMonthData.length - 1].close - currentMonthData[0].close) / currentMonthData[0].close) * 100
         : 0;
