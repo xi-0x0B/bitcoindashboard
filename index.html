@@ -1003,7 +1003,7 @@
       
       const referenceDays = referencePeriod === 'all' ? 'all' : parseInt(referencePeriod);
       
-      const stats = calculateStats(allData, referenceDays, volWindow,, allData);
+      const stats = calculateStats(allData, referenceDays, volWindow, allData);
       updateUI(stats);
       updateCharts(allData, referenceDays);
     }
